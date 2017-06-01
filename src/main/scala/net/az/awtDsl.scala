@@ -11,20 +11,14 @@ object awtDsl {
   def borderLayout:BorderLayout = new BorderLayout
   def flowLayout: FlowLayout = new FlowLayout
 
-  def panel(lm: LayoutManager, setups: (Panel=>AnyRef)*)(parent: Container):Panel = {
+  def panel(parent:Container, lm: LayoutManager, setups: (Panel=>AnyRef)*):Panel = {
     val p = new Panel(lm)
     parent.add(p)
     setups.foreach(_(p))
     p
   }
 
-  def label(text:String)(parent:Container):Label = {
-    val l = new Label(text)
-    parent.add(l)
-    l
-  }
-
-  def worldWindow(model:Model)(parent: Container):WorldWindow = {
+  def worldWindow(parent:Container, model:Model):WorldWindow = {
     val world = new WorldWindowGLCanvas
     world.setModel(model)
     parent.add(world)
@@ -32,7 +26,7 @@ object awtDsl {
     world
   }
 
-  def frame(setups: (Frame => AnyRef)*)(parent:Composite): Frame  = {
+  def frame(parent:Composite, setups: (Frame => AnyRef)*): Frame  = {
     val f = SWT_AWT.new_Frame(parent)
     setups.foreach(_(f))
     f.pack()

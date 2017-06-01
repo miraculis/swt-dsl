@@ -2,15 +2,13 @@ name := "ui"
 
 version := "1.0"
 
-scalaVersion := "2.12.1"
+scalaVersion := "2.12.2"
 
 libraryDependencies += "junit" % "junit" % "4.10" % "test"
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-
-libraryDependencies += "io.reactivex" % "rxscala_2.12" % "0.26.5"
 
 val os =
   (sys.props("os.name"), sys.props("os.arch")) match {
@@ -24,8 +22,4 @@ val os =
 
 libraryDependencies += "org.eclipse.swt" % "org.eclipse.swt.win32.win32.x86_64" % "4.3"
 
-libraryDependencies += "org.jogamp.jogl" % "jogl-all" % "2.0.2"
-
-libraryDependencies += "org.jogamp.gluegen" % "gluegen-rt" % "2.0.2"
-
-
+libraryDependencies += "org.scala-lang.plugins" %% "scala-continuations-library" % "1.0.3"

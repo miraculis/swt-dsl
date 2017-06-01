@@ -1,16 +1,17 @@
-package net.az
+package net.az.widgets
 
 import org.eclipse.swt._
 import org.eclipse.swt.layout.GridData
 
-trait Styles {
   abstract class Style(val value: Int)
   trait ShellStyle extends Style  {
     def |(other: ShellStyle): ShellStyle = new Style(this.value | other.value) with ShellStyle
   }
-  case object None extends Style(SWT.NONE)
+  case object None extends Style(SWT.NONE) with ShellStyle
   case object Embedded extends Style(SWT.EMBEDDED)
   case object FillBoth extends Style(GridData.FILL_BOTH)
+  case object Check extends Style(SWT.CHECK)
+  case object Radio extends Style(SWT.RADIO)
   case object Border extends Style(SWT.BORDER) with ShellStyle
   case object Close extends Style(SWT.CLOSE) with ShellStyle
   case object Min extends Style(SWT.MIN) with ShellStyle
@@ -24,4 +25,3 @@ trait Styles {
   case object PrimaryModal extends Style(SWT.PRIMARY_MODAL) with ShellStyle
   case object ApplicationModal extends Style(SWT.APPLICATION_MODAL) with ShellStyle
   case object SystemModal extends Style(SWT.SYSTEM_MODAL) with ShellStyle
-}

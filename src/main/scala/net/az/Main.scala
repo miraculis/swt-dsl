@@ -1,91 +1,108 @@
 package net.az
 
-import swtDsl._
-import awtDsl._
+import net.az.react.dom
+import net.az.swtDsl._
+import net.az.awtDsl._
 import wwDsl._
-import rx.lang.scala.Observer
-
-
+import net.az.react.dom._
+import net.az.widgets.Embedded
 /**
   */
-object Main {
+object Main extends Observing {
   implicit val editValue = new DefaultEditValue("")
-  def runUserForm = {
-    shell(
-      title("User Profile"),
-      gridLayout(),
-      composite (
-        gridLayout(columns(2)),
-        group(
-          title("Name"),
-          gridLayout(columns(2)),
-          horizontal(fill, grabExcessSpace),
-          vertical(fill, grabExcessSpace),
-          swtDsl.label("First:"),
-          edit(Observer(println(_))),
-          horizontal(fill, grabExcessSpace)
-        ),
-        group(
-          title("Last"),
-          gridLayout(columns(2)),
-          horizontal(fill, grabExcessSpace),
-          vertical (fill, grabExcessSpace),
-          swtDsl.label("Last:"),
-          edit(Observer(println(_))),
-          horizontal(fill, grabExcessSpace)
-        )
-      ),
-      group(
-        title("Gender"),
-        rowLayout(),
-        horizontal(fill, grabExcessSpace),
-        vertical(fill, grabExcessSpace),
-        radioButton(Observer((b) => println("male selected")), title("Male")),
-        radioButton(Observer((b) => println("female selected")), title("Female"))
-      ),
-      group(
-        title("Role"),
-        rowLayout(),
-        horizontal(fill, grabExcessSpace),
-        vertical(fill, grabExcessSpace),
-        checkBox(Observer((b) => println("student")), title("Student")),
-        checkBox(Observer((b) => println("employee")), title("Employee"))
-      ),
-      group(
-        title("Experience"),
-        rowLayout(),
-        horizontal(fill, grabExcessSpace),
-        vertical(fill, grabExcessSpace),
-        spinner(Observer((x) => println(s"$x years expirience"))),
-        swtDsl.label("years")
-      ),
-      button(
-        Observer((b) => println("save user")),
-        title("save"),
-        horizontal(fill, grabExcessSpace),
-        vertical(fill, grabExcessSpace)
-      ),
-      button(
-        Observer((b) => System.exit(0)),
-        title("close"),
-        horizontal(fill, grabExcessSpace),
-        vertical(fill, grabExcessSpace)
-      )
-    ).run
+
+  class WWd {
+    val d = display
+    val sh = shell(d, net.az.widgets.None, title("Nasa"), layout(gridLayout()))
+    val comp = composite(sh, Embedded)
+    val awt = frame(comp)
+    val top = panel(awt, flowLayout)
+    val ww = worldWindow(top, model)
+
+    def runForm = {
+      sh.pack
+      sh.open
+      run(d, sh)
+    }
   }
 
-  def runWWd = {
-    shell(
-      title("World window"),
-      gridLayout(),
-      composite(Embedded) (
-        gridData(FillBoth),
-        frame(panel(flowLayout, worldWindow(model)))
+  class UserForm {
+    val d = display
+    val sh = shell(d, net.az.widgets.None, title("User Profile"), layout(gridLayout()))
+    val c1 = composite(sh, net.az.widgets.None, layout(gridLayout(columns(2))))
+    val g1 = group(c1, title("first name"), layout(gridLayout(columns(2))), horizontal(fill, grabExcessSpace),
+      vertical(fill, grabExcessSpace))
+    swtDsl.label(g1, "first name:")
+    val fn = edit(g1)
+    val g2 = group(c1, title("last name"), layout(gridLayout(columns(2))), horizontal(fill, grabExcessSpace),
+      vertical(fill, grabExcessSpace))
+    swtDsl.label(g2, "last name:")
+    val ln = edit(g2)
+    val g3 = group(sh, title("gender"), layout(rowLayout()), horizontal(fill, grabExcessSpace), vertical(fill, grabExcessSpace))
+    val male = radioButton(g3, title("male"))
+    val female = radioButton(g3, title("female"))
+    val g4 = group(sh, title("role"), layout(rowLayout()), horizontal(fill, grabExcessSpace), vertical(fill, grabExcessSpace))
+    val stud = checkBox(g4, title("student"))
+    val emp = checkBox(g4, title("empoyee"))
+    val g5 = group(sh, title("expirience"), layout(rowLayout()), horizontal(fill, grabExcessSpace), vertical(fill, grabExcessSpace))
+    val spin = spinner(g5)
+    swtDsl.label(g5, "years")
+    val save = button(sh, title("save"))
+    val exit = button(sh, title("exit"))
+
+    def control(): Unit = {
+      observe(fn.values)((m) => {
+        println(m)
+        true
+      }
       )
-    ).run
+      observe(exit.clicks)((m) => {
+        System.exit(0)
+        false
+      })
+      observe(save.clicks)((m) => {
+        println("saving...")
+        true
+      })
+      observe(spin.values)((m) => {
+        println(s"$m years")
+        true
+      })
+      observe(emp.clicks)((m) => {
+        println("e selected")
+        true
+      })
+      observe(stud.clicks)((m) => {
+        println("s selected")
+        true
+      })
+      observe(ln.values)((m) => {
+        println(m)
+        true
+      }
+      )
+      observe(male.clicks)((m) => {
+        println("m selected")
+        true
+      })
+      observe(female.clicks)((m) => {
+        println("f selected")
+        true
+      })
+    }
+
+    def run() = {
+      sh.pack
+      sh.open
+      swtDsl.run(d, sh)
+    }
   }
+
   def main(args: Array[String]): Unit = {
-    runWWd
+    val form = new WWd
+
+    dom.start
+    form.runForm
   }
 }
 

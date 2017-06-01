@@ -1,45 +1,42 @@
 package net.az
 
+import net.az.widgets.{Border, Button, Check, None, Radio, ShellStyle, Spinner, Style, Text}
 import org.eclipse.swt.SWT
-import org.eclipse.swt.events.{ModifyEvent, SelectionEvent, SelectionListener}
 import org.eclipse.swt.graphics.Image
 import org.eclipse.swt.layout._
 import org.eclipse.swt.widgets._
-import rx.lang.scala.{Observable, Observer, Subscriber}
 
-case class ShellDisplay(shell: Shell, display: Display) {
-  def run = {
+
+object swtDsl extends Layouts {
+
+  def display = new Display
+
+  def shell(display: Display, style: ShellStyle, settings:(Shell=>AnyRef)*): Shell = {
+    val shell = new Shell(display, style.value)
+    settings.foreach(_(shell))
+    shell
+  }
+
+  def run(display:Display, shell:Shell) = {
     while (!shell.isDisposed)
       if (!display.readAndDispatch()) display.sleep()
     display.dispose()
   }
-}
 
-object swtDsl extends Layouts with Styles {
-
-  def shell(setups: (Shell => AnyRef)*): ShellDisplay = {
-    val display = new Display()
-    val shell = ShellDisplay(new Shell(display), display)
-    shell.shell.setLayout(new FillLayout)
-    setups.foreach(_(shell.shell))
-    shell.shell.pack()
-    shell.shell.open()
-    shell
-  }
-
-  def shell(style: ShellStyle)(setups: (Shell => AnyRef)*): ShellDisplay = {
-    val display = new Display()
-    val shell = ShellDisplay(new Shell(display, style.value), display)
-    shell.shell.setLayout(new FillLayout)
-    setups.foreach(_(shell.shell))
-    shell.shell.pack()
-    shell.shell.open()
-    shell
-  }
 
   def title(t: String)(titled: {def setText(t: String)}) = {
     titled.setText(t)
     titled
+  }
+
+  def layout(l: Layout)(wl: {def setLayout(l: Layout)}) = {
+    wl.setLayout(l)
+    wl
+  }
+
+  def layoutData(data:Any)(ld: {def setLayoutData(data:Any)}) = {
+    ld.setLayoutData(data)
+    ld
   }
 
   def icon(image: Image)(target: {def setImage(image: Image)}) = target.setImage(image)
@@ -50,35 +47,24 @@ object swtDsl extends Layouts with Styles {
 
                                                                 })
 
-  def gridData(style:Style)(parent:Composite): GridData = {
-    val gd = new GridData(style.value)
-    parent.setLayoutData(gd)
-    gd
+  def gridData(style:Style): GridData = {
+    new GridData(style.value)
   }
 
-  def composite(setups: (Composite => AnyRef)*)(parent: Composite): Composite = {
-    val c = new Composite(parent, None.value)
-    c.setLayout(new FillLayout)
-    setups.foreach(_(c))
-    c
-  }
-
-  def composite(style: Style)(setups: (Composite => AnyRef)*)(parent: Composite): Composite = {
+  def composite(parent:Composite, style: Style, setups: (Composite => AnyRef)*): Composite = {
     val c = new Composite(parent, style.value)
     c.setLayout(new FillLayout)
     setups.foreach(_(c))
     c
   }
 
-
-  def group(setups: (Group => AnyRef)*)(parent:Composite): Group = {
+  def group(parent:Composite, setups: (Group => AnyRef)*): Group = {
     val g = new Group(parent, SWT.NONE)
-    g.setLayout(new FillLayout)
     setups.foreach(_(g))
     g
   }
 
-  def label(t: String, setups: (Label => AnyRef)*)(parent:Composite): Label = {
+  def label(parent:Composite, t: String, setups: (Label => AnyRef)*): Label = {
 		  val label = new Label(parent, SWT.NONE)
 		  label.setText(t)
 		  setups.foreach(_(label))
@@ -87,66 +73,37 @@ object swtDsl extends Layouts with Styles {
 
   case class DefaultEditValue(value: String)
 
-  def edit(binding: Observer[String], setups: (Text => AnyRef)*)(parent:Composite)(implicit content: DefaultEditValue): Text = {
-    val text = new Text(parent, SWT.BORDER)
-    text.setText(content.value)
-    setups.foreach(_(text))
-    Observable((subscriber: Subscriber[String]) =>
-      text.addModifyListener((e: ModifyEvent) =>
-          e.widget match {
-          case t:Text => subscriber.onNext(t.getText)
-        })
-      ).subscribe(binding)
-
+  def edit(parent:Composite, setups: (org.eclipse.swt.widgets.Text => AnyRef)*)(implicit content: DefaultEditValue): Text = {
+    val text = Text(parent, Border, content)
+    setups.foreach(_(text swt))
     text
   }
 
-  def radioButton(binding: Observer[Boolean], setups: (Button => AnyRef)*)(parent: Composite): Button = {
-    val button = new Button(parent, SWT.RADIO)
-    setups.foreach(_(button))
-    Observable((subscriber: Subscriber[Boolean]) => button.addSelectionListener(new SelectionListener {
-      override def widgetSelected(selectionEvent: SelectionEvent): Unit = subscriber.onNext(true)
-
-      override def widgetDefaultSelected(selectionEvent: SelectionEvent): Unit = subscriber.onNext(true)
-    })).subscribe(binding)
+  def radioButton(parent:Composite, setups: (org.eclipse.swt.widgets.Button => AnyRef)*): Button = {
+    val button = new Button(parent, Radio)
+    setups.foreach(_(button swt))
     button
   }
 
-  def checkBox(binding: Observer[Boolean], setups: (Button => AnyRef)*)(parent:Composite): Button = {
-    val button = new Button(parent, SWT.CHECK)
-    setups.foreach(_(button))
-    Observable((subscriber: Subscriber[Boolean]) => button.addSelectionListener(new SelectionListener {
-      override def widgetSelected(selectionEvent: SelectionEvent): Unit = subscriber.onNext(true)
-
-      override def widgetDefaultSelected(selectionEvent: SelectionEvent): Unit = subscriber.onNext(true)
-    })).subscribe(binding)
+  def checkBox(parent:Composite, setups: (org.eclipse.swt.widgets.Button => AnyRef)*): Button = {
+    val button = new Button(parent, Check)
+    setups.foreach(_(button swt))
     button
   }
 
-  def button(stream: Observer[Boolean], setups: (Button => AnyRef)*)(parent:Composite): Button = {
-    val button = new Button(parent, SWT.NONE)
-    setups.foreach(_(button))
-    Observable((subscriber: Subscriber[Boolean]) => button.addSelectionListener(new SelectionListener {
-      override def widgetSelected(selectionEvent: SelectionEvent): Unit = subscriber.onNext(true)
-
-      override def widgetDefaultSelected(selectionEvent: SelectionEvent): Unit = subscriber.onNext(true)
-    })).subscribe(stream)
+  def button(parent:Composite, setups: (org.eclipse.swt.widgets.Button => AnyRef)*): Button = {
+    val button = new Button(parent, widgets.None)
+    setups.foreach(_(button swt))
     button
   }
 
-  def spinner(binding: Observer[Int], setups: (Spinner => AnyRef)*)(parent:Composite) = {
-    val spinner = new Spinner(parent, SWT.NONE)
-    setups.foreach(_(spinner))
-    Observable((subscriber: Subscriber[Int]) =>
-      spinner.addModifyListener((e: ModifyEvent) =>
-          e.widget match {
-            case t:Spinner => subscriber.onNext(t.getDigits)
-          })
-    ).subscribe(binding)
+  def spinner(parent:Composite, setups: (org.eclipse.swt.widgets.Spinner => AnyRef)*) = {
+    val spinner = new Spinner(parent, None)
+    setups.foreach(_(spinner swt))
     spinner
   }
 
-  def selectedIndex(i: Int)(s: Spinner) = s.setSelection(i)
+  def selectedIndex(i: Int)(s: Spinner) = s.swt.setSelection(i)
 
   def selected(widget: {def setSelection(b: Boolean)}) = widget.setSelection(true)
 }

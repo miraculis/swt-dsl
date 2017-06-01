@@ -12,20 +12,24 @@ trait Layouts {
     val sizeHint: Int => Unit
   )
 
-  def rowLayout(setups: (RowLayout => AnyRef)*)(composite: Composite): RowLayout = {
+  def fillLayout(setups: (FillLayout=>AnyRef)*) = {
+    val layout = new FillLayout
+    setups.foreach(_(layout))
+    layout
+  }
+
+  def rowLayout(setups: (RowLayout => AnyRef)*): RowLayout = {
   	val layout = new RowLayout
     setups.foreach(_(layout))
-  	composite.setLayout(layout)
   	layout
   }
   
-  def gridLayout(setups: (GridLayout => AnyRef)*)(composite: Composite): GridLayout = {
+  def gridLayout(setups: (GridLayout => AnyRef)*): GridLayout = {
     val layout = new GridLayout
     setups.foreach(_(layout))
-    composite.setLayout(layout)
     layout
   }
-  
+
   def horizontal(settings: (GridCell => AnyRef)*)(target: Control) = {
     val data = target.getLayoutData() match {
       case x: GridData => x
@@ -77,12 +81,6 @@ trait Layouts {
   def columns(n: Int)(layout: GridLayout) = {
     layout.numColumns = n
     layout
-  }
-
-  def fillLayout(setups: (FillLayout=>Unit)*)(composite: Composite) {
-    val l = new FillLayout()
-    setups.foreach(_(l))
-    composite.setLayout(l)
   }
 
   def horizontal(layout: FillLayout) {
